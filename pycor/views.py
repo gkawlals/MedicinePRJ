@@ -21,6 +21,8 @@ def ocr_upload(request):
 
     imgname = ''
     resulttext = ''
+    wordlist = []
+    textlist = []
     if 'fileSelect' in request.FILES:
         fileSelect = request.FILES.get('fileSelect', '')
 
@@ -35,18 +37,21 @@ def ocr_upload(request):
 
             imgfile = Image.open(f"./static/source/{imgname}")
 
-            resulttext = re.sub(r"[0-9]",' ',pytesseract.image_to_string(imgfile,lang='kor'))
+            resulttext = re.sub(r"[a-zA-Z0-9!@#%※$/(){}_]", ' ',pytesseract.image_to_string(imgfile, lang='kor')).replace("\n", '')
 
-            # wordlist = []
-            #
-            # for word in resulttext:
-            #     if '정' in word:
-            #         wordlist.append(word)
+            for i in resulttext:
+                if i.endswith('정'):
+                    textlist.append(i)
 
     context['imgname'] = imgname
     context['dbsavefilename'] = filename
-    context['resulttext'] = [resulttext.replace(".", ''),resulttext.split()]
-    # context['wordlist'] = wordlist
+    context['resulttext'] = resulttext.replace("정", '정,').replace(" ",'')
+    context['textlist'] = textlist
+    for word in resulttext:
+        if word.endswith('정'):
+            wordlist.append(word)
+
+    context['wordlist'] = wordlist
     return render(request, 'ocr_upload.html', context)
 
 
