@@ -18,7 +18,7 @@
             <th>
                 <img src="/static/source{{i.src_file}}" style="width : 90%">
             </th>
-            <th>{{i.result_text}}</th>
+            <th>{{i.resulttext}}</th>
             <th></th>
         </tr>
         {% endfor %}
@@ -29,6 +29,11 @@
         <a href="ocr_upload" ><button>READ</button></a>
     </div>
     {% endif %}
+</div>
+<div>
+    <button onclick="location.href='/ocr_upload'">
+        go to upload
+    </button>
 </div>
 </body>
 </html>
