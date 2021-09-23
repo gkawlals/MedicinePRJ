@@ -31,9 +31,9 @@ def ocr_upload(request):
 
     imgname = ''
     resulttext = [] # 약품의 이름 들고오기,
-    Medicine_code = ' '
+    Medicine_code = []
     wordlist = []
-    textlist = []
+    codelist = []
 
     color = ('b', 'g', 'r')
     if 'fileSelect' in request.FILES:
@@ -51,7 +51,7 @@ def ocr_upload(request):
 
             imgfile = Image.open(f"./static/source/{imgname}")
 
-            resulttext = re.sub(r"[a-zA-Z0-9!@#%※$/{}_.]",' ',pytesseract.image_to_string(imgfile, lang='kor')).replace(" ", '').replace("\n", " ").replace("내복",'').replace("점","정").replace("전","정")
+            resulttext = re.sub(r"[a-zA-Z0-9!@#%※$/{}_.]",' ',pytesseract.image_to_string(imgfile, lang='kor')).replace(" ", '').replace("\n", " ").replace("점","정").replace("전","정")
 
             # data = resulttext.replace("\n", " ").replace("내복",'').replace("점","정").replace("전","정")
 
@@ -62,24 +62,26 @@ def ocr_upload(request):
                        wordlist.append(word)
                    elif word.endswith("주"):
                        wordlist.append(word)
+                   elif word.endswith("복)") :
+                       wordlist.append(word)
+                   elif word.startswith("비)"):
+                       wordlist.append(word)
 
             Medicine_code = re.sub(r"[^0-9]",' ',pytesseract.image_to_string(imgfile, lang='kor')).replace("\n"," ")
 
-            # image = cv2.imread(fileSelect, cv2.IMREAD_GRAYSCALE) # 이미지 흑백으로 만들기
-            #
-            # image_enhanced = cv2.equalizeHist(image)
+            Medicine_code = Medicine_code.split()
 
-            # plt.imshow(image_enhanced, cmap="gray"),plt.axis("off")
-    # OCR의 기준으로 정, 점, 전으로 끝나는 단어들 불러와야함
-    context['Medicine_code'] = Medicine_code.split()
+            for code in Medicine_code:
+                if len(code) >= 7:
+                    codelist.append(code)
+
+    context['Medicine_code'] = Medicine_code
     context['imgname'] = imgname
     context['dbsavefilename'] = filename
     context['resulttext'] = resulttext
-    context['wordlist'] =  wordlist
-
+    context['wordlist'] = wordlist
+    context['codelist'] = codelist
     return render(request, 'ocr_upload.html', context)
-
-
 
 def ocr_list(request):
     context = {}
@@ -89,6 +91,15 @@ def ocr_list(request):
     context['reSource'] = reSource
 
     return render(request, 'ocr_list.html', context)
+
+def RequestFnc(request):
+    context = {}
+
+    context['menutitle'] = 'RequestFnc'
+    context['wordlist'] = 'wordlist'
+    context['Medicine_code'] = 'Medicine_code'
+
+    return render(request, 'RequestFnc.html', context)
 
 
 def FindPass(request):
@@ -119,3 +130,5 @@ def LoginPage(request):
     context['reSource'] = reSource
 
     return render(request, 'ocr_list.html', context)
+
+

@@ -22,7 +22,7 @@
             return cookieValue;
         }
         var csrftoken = getCookie('csrftoken');
-    </script>
+      </script>
 </head>
 <body>
 <h1>
@@ -37,8 +37,6 @@
         <input type="submit" value="READ"/>
     </div>
 </form>
-<input type="button" onclick="location.href='/RequestFnc.html'" value="정보보내기">
-
 <div>
     <table style="width : 100%">
         <tr>
@@ -58,15 +56,29 @@
     </pre>
 </div>
 <div style="width : 50%; height : 200px;">
-    <pre style="width : 100%; height : 100%;">
+    <pre style="width : 100%; height : 100%;" id="wordlist">
         {{wordlist}}
     </pre>
 </div>
 <div>
-    <pre>
-        {{ Medicine_code }}
+    <pre id="Medicine_code">
+
+        {{ codelist }}
+
     </pre>
 </div>
 
+<div>
+    <input type="button" onclick="requestTest()" value="정보보내기">
+</div>
+<script>
+    function requestTest(){
+
+        var wordlist = document.getElementById(wordlist)
+        var Medicine_code = document.getElementById(Medicine_code)
+
+        location.href='/RequestFnc.html'
+    }
+</script>
 </body>
 </html>
