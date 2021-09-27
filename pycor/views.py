@@ -34,6 +34,7 @@ def ocr_upload(request):
     Medicine_code = []
     wordlist = []
     codelist = []
+    histtext = []
 
     color = ('b', 'g', 'r')
     if 'fileSelect' in request.FILES:
@@ -49,11 +50,12 @@ def ocr_upload(request):
 
             imgname = fs.save(f"src_{name_old}", fileSelect) # 파일 이름을 원래의 파일이름이 아닌 저장시 알 수 있게 src_를 붙힌다.
 
+            file_src = ("/static/source/" + imgname)
+
             imgfile = Image.open(f"./static/source/{imgname}")
 
-            resulttext = re.sub(r"[a-zA-Z0-9!@#%※$/{}_.]",' ',pytesseract.image_to_string(imgfile, lang='kor')).replace(" ", '').replace("\n", " ").replace("점","정").replace("전","정")
-
-            # data = resulttext.replace("\n", " ").replace("내복",'').replace("점","정").replace("전","정")
+            # 평활화하기 전의 사진을 ocr한 text값 가져오기
+            resulttext = re.sub(r"[!@#%※$/{}_.=+;:]",' ',pytesseract.image_to_string(imgfile, lang="eng+kor")).replace(" ", '').replace("\n", " ").replace("점","정").replace("전","정")
 
             resulttext = resulttext.split()
 
@@ -66,6 +68,9 @@ def ocr_upload(request):
                        wordlist.append(word)
                    elif word.startswith("비)"):
                        wordlist.append(word)
+                   elif word.endswith("mg"):
+                       wordlist.append(word.replace("mg", "밀리그램"))
+
 
             Medicine_code = re.sub(r"[^0-9]",' ',pytesseract.image_to_string(imgfile, lang='kor')).replace("\n"," ")
 
@@ -75,12 +80,36 @@ def ocr_upload(request):
                 if len(code) >= 7:
                     codelist.append(code)
 
+            gray = cv2.imread(file_src, cv2.IMREAD_GRAYSCALE)  # 평활화를 위해 선택한 사진 흑백화하기
+
+            gray = cv2.equalizeHist(gray)
+
+            # 평활화한 사진을 ocr해 text값 가져오기
+            histtext = re.sub(r"[!@#%※$/{}_.=+;:]", ' ', pytesseract.image_to_string(gray, lang="eng+kor")).replace(" ",'').replace("\n", " ").replace("점", "정").replace("전", "정")
+
+            histtext = histtext.split()
+
+        for word in histtext:
+            if word.endswith("정"):
+                wordlist.append(word)
+            elif word.endswith("주"):
+                wordlist.append(word)
+            elif word.endswith("복)"):
+                wordlist.append(word)
+            elif word.startswith("비)"):
+                wordlist.append(word)
+            elif word.endswith("mg"):
+                wordlist.append(word.replace("mg", "밀리그램"))
+
+
     context['Medicine_code'] = Medicine_code
     context['imgname'] = imgname
     context['dbsavefilename'] = filename
     context['resulttext'] = resulttext
     context['wordlist'] = wordlist
     context['codelist'] = codelist
+    context['histtext'] = histtext
+
     return render(request, 'ocr_upload.html', context)
 
 def ocr_list(request):
@@ -94,10 +123,12 @@ def ocr_list(request):
 
 def RequestFnc(request):
     context = {}
+    wordlist = request.GET['wordlist']
+    Medicine_code = request.GET['Medicine_code']
 
     context['menutitle'] = 'RequestFnc'
-    context['wordlist'] = 'wordlist'
-    context['Medicine_code'] = 'Medicine_code'
+    context['wordlist'] = wordlist
+    context['Medicine_code'] = Medicine_code
 
     return render(request, 'RequestFnc.html', context)
 
